@@ -12,7 +12,7 @@ import lmdb
 import os
 
 
-class Sig53:
+class Sig53FFT:
     """The Official Sig53 dataset, dimensionally reduced to its Fourier representation.
 
     Args:
@@ -52,11 +52,11 @@ class Sig53:
 
     @staticmethod
     def convert_idx_to_name(idx: int) -> str:
-        return Sig53._idx_to_name_dict.get(idx, "unknown")
+        return Sig53FFT._idx_to_name_dict.get(idx, "unknown")
 
     @staticmethod
     def convert_name_to_idx(name: str) -> int:
-        return Sig53._name_to_idx_dict.get(name, -1)
+        return Sig53FFT._name_to_idx_dict.get(name, -1)
 
     def __init__(
         self,
@@ -175,7 +175,7 @@ class Sig53:
             "eb_no": self.eb_no,
             "num_samples": cfg.num_samples,
             "num_iq_samples": cfg.num_iq_samples,
-            "idx_to_name": Sig53._idx_to_name_dict,
+            "idx_to_name": Sig53FFT._idx_to_name_dict,
             "num_classes": 53,
         }
 
@@ -184,11 +184,11 @@ class Sig53:
 
         for i in tqdm.tqdm(range(len(mds))):
             data, (mod, snr) = mds[i]
-
-            data_c64 = data.astype(np.complex64)
+            
+            data_dft = np.fft.fft2(data.astype(np.complex64))
 
             with self._env.begin(write=True) as txn:
-                txn.put(str(i).encode(), pickle.dumps(data_c64), db=self._sample_db)
+                txn.put(str(i).encode(), pickle.dumps(data_dft), db=self._sample_db)
                 txn.put(str(i).encode(), str(mod).encode(), db=self._modulation_db)
                 txn.put(str(i).encode(), str(snr).encode(), db=self._snr_db)
 
